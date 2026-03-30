@@ -2,9 +2,12 @@
 
 ## Overview
 
-This project investigates short-term trading strategies using 15-minute German day-ahead electricity price data.
+This project explores short-term trading behaviour in the electricity market using 15-minute German day-ahead price data.
 
-The objective is not only to design trading signals, but to evaluate their robustness under realistic conditions, including data cleaning, transaction costs, and out-of-sample testing.
+Instead of starting from a predefined model, I approached this as a bottom-up exercise:
+beginning with raw data, building a clean time series, testing simple hypotheses, and gradually refining strategies based on observed market behaviour.
+
+The goal is not to build a “profitable system”, but to understand how standard financial ideas behave in a real, noisy, and regime-dependent market.
 
 ---
 
@@ -15,40 +18,78 @@ The objective is not only to design trading signals, but to evaluate their robus
 * Frequency: 15-minute intervals
 * Period: March 2026
 
+The dataset reflects intraday dynamics with frequent spikes, structural breaks, and non-stationary behaviour — making it very different from typical equity time series.
+
 ---
 
 ## Data Processing
 
-* Merged multiple daily CSV files
+The raw data was not directly usable and required several steps:
+
+* Merged daily CSV files into a continuous dataset
 * Parsed timestamps from MTU format
-* Removed duplicated entries
-* Filtered extreme values (top/bottom 1%)
-* Generated a clean and continuous time series
+* Removed duplicated entries (multiple sequences per interval)
+* Filtered extreme values (top/bottom 1%) to reduce distortion from spikes
+* Sorted and aligned into a consistent time series
+
+The result is a clean dataset suitable for short-term signal testing.
+
+---
+
+## How I Approached the Problem
+
+Rather than jumping straight into modelling, I started with a simple question:
+
+> Does electricity price behave more like a trending process or a mean-reverting one?
+
+This led to two initial hypotheses:
+
+* If prices exhibit persistence → trend-following should work
+* If prices revert to a local equilibrium → mean-reversion should work
+
+From there, I implemented both and compared them under the same conditions.
 
 ---
 
 ## Methodology
 
-### Train/Test Split
+### Train / Test Split
+
+To avoid misleading conclusions, I split the data:
 
 * Train: before 2026-03-21
 * Test: after 2026-03-21
 
+This ensures all conclusions are validated out-of-sample.
+
 ---
 
-### Strategies
+### Strategy 1: Trend-Following
 
-#### Trend-Following
+* Short moving average: 2 hours
+* Long moving average: 8 hours
 
-* Short MA: 2 hours
-* Long MA: 8 hours
+Signal:
+
 * Long when short MA > long MA
+* Flat otherwise
 
-#### Mean-Reversion
+This tests whether short-term momentum exists in electricity prices.
+
+---
+
+### Strategy 2: Mean-Reversion
 
 * Rolling window: 8 hours
-* Z-score based signals
-* Entry and exit thresholds with cooldown
+* Z-score based signal
+
+Logic:
+
+* Short when price is significantly above rolling mean
+* Long when price is significantly below
+* Exit near equilibrium
+
+A cooldown mechanism was added to reduce over-trading.
 
 ---
 
@@ -56,7 +97,7 @@ The objective is not only to design trading signals, but to evaluate their robus
 
 * Transaction costs included
 * Signals shifted to avoid look-ahead bias
-* Scaled PnL used to handle electricity price characteristics
+* Evaluated using PnL, Sharpe ratio, and drawdown
 
 ---
 
@@ -64,33 +105,68 @@ The objective is not only to design trading signals, but to evaluate their robus
 
 ![Price and Moving Averages](results/price_ma_plot.png)
 
-![Strategy Performance](results/test_strategy_comparison_pnl.png)
+![Strategy Performance (Test Set)](results/test_strategy_comparison_pnl.png)
+
+### Key Observations
+
+* Mean-reversion performed reasonably well in the training set
+* However, it broke down completely in the test period
+* Trend-following, while not perfect, was more stable out-of-sample
 
 ---
 
-## Key Findings
+## What This Suggests
 
-* Strategy performance is highly regime-dependent
-* Mean-reversion performs well in-sample but fails out-of-sample
-* Trend-following is more robust in the test period
-* Standard financial strategies do not directly transfer to electricity markets
+The most important takeaway is not which strategy “wins”, but why:
+
+* Electricity prices are highly **regime-dependent**
+* Behaviour observed in one period does not generalise reliably
+* Simple strategies can appear strong in-sample but fail quickly out-of-sample
+
+This reinforces a key idea:
+
+> Backtesting without proper validation can be misleading.
 
 ---
 
 ## Project Structure
 
-```
-├── src/
-├── data/
-├── results/
-├── README.md
-├── requirements.txt
+```text
+src/
+  merge_and_clean.py        # data cleaning and preprocessing
+  model_and_strategy.py     # signal generation and backtesting
+
+data/
+  clean_price_data.csv      # processed dataset
+
+results/
+  *.png                     # visualisations
+  *.csv                     # backtest outputs
+
+requirements.txt
+README.md
 ```
 
 ---
 
-## Key Takeaway
+## Final Thoughts
 
-Out-of-sample evaluation significantly changes conclusions.
+This project was built as an exploratory step into electricity markets.
 
-Apparent profitability in historical data does not guarantee real-world performance.
+What stands out is how different this domain is from traditional financial assets:
+
+* more noise
+* more structural breaks
+* stronger dependence on external factors
+
+The process of building, testing, and seeing strategies fail was as valuable as any “successful” result.
+
+---
+
+## Future Work
+
+* Incorporate external drivers (demand, renewables, weather)
+* Try predictive models instead of rule-based signals
+* Explore regime detection before applying strategies
+
+---
