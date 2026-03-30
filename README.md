@@ -170,6 +170,10 @@ The process of testing, breaking, and re-evaluating assumptions was the most val
 
 The process of building, testing, and seeing strategies fail was as valuable as any “successful” result.
 
+In the test period, trend-following achieved positive PnL while mean-reversion showed a clear drawdown, indicating a breakdown of in-sample behaviour.
+
+In practice, this suggests that simple signal-based strategies are unlikely to be robust without incorporating regime awareness or external drivers.
+
 ---
 
 ## Future Work
