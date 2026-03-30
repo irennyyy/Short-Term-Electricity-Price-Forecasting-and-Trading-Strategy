@@ -1,125 +1,96 @@
-Short term electricity price trading strategy
-1. Overview
+# Short-Term Electricity Price Forecasting and Trading Strategy
+
+## Overview
 
 This project investigates short-term trading strategies using 15-minute German day-ahead electricity price data.
 
-The goal is not just to build a profitable strategy, but to evaluate whether simple signals remain robust under realistic conditions, including:
+The objective is not only to design trading signals, but to evaluate their robustness under realistic conditions, including data cleaning, transaction costs, and out-of-sample testing.
 
-Data cleaning
-Transaction costs
-Outlier filtering
-Train/test split (out-of-sample validation)
+---
 
-2. Dataset
-Source: ENTSO-E Transparency Platform
-Market: Germany (BZN|DE-LU)
-Frequency: 15-minute intervals
-Period: March 2026
-Key fields:
-timestamp
-price (EUR/MWh)
+## Dataset
 
+* Source: ENTSO-E Transparency Platform
+* Market: Germany (BZN|DE-LU)
+* Frequency: 15-minute intervals
+* Period: March 2026
 
-3. Data Processing
+---
 
-Raw CSV files were merged and cleaned:
+## Data Processing
 
-Combined multiple daily files
-Parsed timestamps from MTU format
-Removed duplicated entries (Sequence 1 vs Sequence 2)
-Filtered extreme values (top/bottom 1%) to reduce spikes impact
-Sorted and resampled into a continuous time series
+* Merged multiple daily CSV files
+* Parsed timestamps from MTU format
+* Removed duplicated entries
+* Filtered extreme values (top/bottom 1%)
+* Generated a clean and continuous time series
 
-Final dataset:
+---
 
-~2700 observations
-Cleaned and aligned time series
+## Methodology
 
+### Train/Test Split
 
-4. Methodology
-4.1 Train / Test Split
-Train: before 2026-03-21
-Test: after 2026-03-21
+* Train: before 2026-03-21
+* Test: after 2026-03-21
 
-This ensures out-of-sample evaluation, avoiding misleading in-sample results.
+---
 
+### Strategies
 
-4. Methodology
-4.1 Train / Test Split
-Train: before 2026-03-21
-Test: after 2026-03-21
+#### Trend-Following
 
-This ensures out-of-sample evaluation, avoiding misleading in-sample results.
+* Short MA: 2 hours
+* Long MA: 8 hours
+* Long when short MA > long MA
 
+#### Mean-Reversion
 
-(2) Mean-Reversion Strategy
-Rolling window: 8 hours
-Z-score:[]
+* Rolling window: 8 hours
+* Z-score based signals
+* Entry and exit thresholds with cooldown
 
+---
 
-Trading rules:
+### Backtesting Design
 
-Short if z > 1.5
-Long if z < -1.5
-Exit when |z| < 0.3
-Cooldown period applied to reduce over-trading
+* Transaction costs included
+* Signals shifted to avoid look-ahead bias
+* Scaled PnL used to handle electricity price characteristics
 
-4.3 Backtesting Assumptions
-PnL based on price differences
-Transaction cost applied per position change
-Signals are shifted to avoid look-ahead bias
-Scaled PnL used for stability
+---
 
-5. Result
+## Results
 
-| Strategy        | Dataset | Final PnL | Sharpe | Max Drawdown |
-| Trend-following | Test    | Positive  | High   | Moderate     |
-| Mean-reversion  | Test    | Negative  | Low    | Large        |
+![Price and Moving Averages](results/price_ma_plot.png)
 
-Key Findings
-1. Strategy performance is not stable across time
-Mean-reversion works in training data
-Fails in test period
-2. Trend-following is more robust out-of-sample
-Positive PnL in test set
-Better risk-adjusted performance
-3. Electricity prices are regime-dependent
-Some periods show mean-reverting behaviour
-Others exhibit trending dynamics
+![Strategy Performance](results/test_strategy_comparison_pnl.png)
 
+---
 
-6. Visualisation
+## Key Findings
 
-The project includes:
+* Strategy performance is highly regime-dependent
+* Mean-reversion performs well in-sample but fails out-of-sample
+* Trend-following is more robust in the test period
+* Standard financial strategies do not directly transfer to electricity markets
 
-Price with moving averages
-Z-score signals
-Train/test split visualisation
-Strategy PnL comparison
+---
 
-Example outputs:
+## Project Structure
 
-price_ma_plot.png
-zscore_plot.png
-test_strategy_comparison_pnl.png
+```
+├── src/
+├── data/
+├── results/
+├── README.md
+├── requirements.txt
+```
 
-7. Key Takeaway
+---
 
-This project demonstrates that:
+## Key Takeaway
 
-Apparent profitability in historical data does not guarantee out-of-sample performance.
+Out-of-sample evaluation significantly changes conclusions.
 
-Simple strategies such as mean-reversion may look effective in-sample but fail when tested on unseen data.
-
-Robust evaluation requires:
-
-Proper data cleaning
-Transaction cost modelling
-Out-of-sample testing
-
-8. Future Improvements
-- Add volatility-based position sizing
-- Include intraday price signals
-- Try machine learning models (e.g. regression / LSTM)
-- Incorporate external features (weather, demand, renewables)
-
+Apparent profitability in historical data does not guarantee real-world performance.
