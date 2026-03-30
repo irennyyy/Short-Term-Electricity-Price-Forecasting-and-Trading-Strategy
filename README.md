@@ -107,6 +107,13 @@ A cooldown mechanism was added to reduce over-trading.
 
 ![Strategy Performance (Test Set)](results/test_strategy_comparison_pnl.png)
 
+### Summary of Results
+
+- Trend-following achieved more stable performance in the test period  
+- Mean-reversion showed strong in-sample performance but failed out-of-sample  
+- The gap between train and test results highlights strong regime dependency  
+
+Overall, trend-following proved more robust under realistic conditions.
 ### Key Observations
 
 * Mean-reversion performed reasonably well in the training set
@@ -149,15 +156,17 @@ README.md
 
 ---
 
+
 ## Final Thoughts
 
-This project was built as an exploratory step into electricity markets.
+What stands out most is not the absolute performance of any strategy, but how unstable that performance is across time.
 
-What stands out is how different this domain is from traditional financial assets:
+A strategy that looks convincing in one period can fail immediately in another.
 
-* more noise
-* more structural breaks
-* stronger dependence on external factors
+This reinforces a practical lesson:
+robustness matters more than in-sample performance.
+
+The process of testing, breaking, and re-evaluating assumptions was the most valuable part of this project.
 
 The process of building, testing, and seeing strategies fail was as valuable as any “successful” result.
 
